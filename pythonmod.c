@@ -637,8 +637,7 @@ int GetString(structlpsolvecaller *lpsolvecaller, pMatrix ppm, int element, char
         }
         item = GetpMatrix(lpsolvecaller, element);
         if((item == NULL) ||
-           (PyBytes_AsStringAndSize(item, &ptr, &size1) != 0) ||
-           (ptr == NULL)) {
+           ((ptr = PyUnicode_AsUTF8AndSize(item, &size1)) == NULL)) {
                 PyErr_Clear();
                 if(ShowError)
                         ErrMsgTxt(lpsolvecaller, "Expecting a character element.");
@@ -665,7 +664,7 @@ strArray GetCellCharItems(structlpsolvecaller *lpsolvecaller, int element, int l
                         ErrMsgTxt(lpsolvecaller, "Expecting a character array.");
                 return(NULL);
         }
-        if (PyBytes_Check(vector)) {
+        if (PyUnicode_Check(vector)) {
                 m = 1;
                 isvector = FALSE;
         }
@@ -690,7 +689,7 @@ strArray GetCellCharItems(structlpsolvecaller *lpsolvecaller, int element, int l
     		    item = PySequence_GetItem(vector, i);
                 else
                     item = vector;
-    		if ((item == NULL) || (!PyBytes_Check(item))) {
+    		if ((item == NULL) || (!PyUnicode_Check(item))) {
                     PyErr_Clear();
                     if ((isvector) && (item != NULL)) {
         		    Py_DECREF(item);
@@ -698,8 +697,7 @@ strArray GetCellCharItems(structlpsolvecaller *lpsolvecaller, int element, int l
                     FreeCellCharItems(pa, i);
                     ErrMsgTxt(lpsolvecaller, "invalid vector (non-string item).");
     		}
-           	if ((PyBytes_AsStringAndSize(item, &ptr, &size1) != 0) ||
-                    (ptr == NULL)) {
+           	if ((ptr = PyUnicode_AsUTF8AndSize(item, &size1)) == NULL) {
                 	PyErr_Clear();
                         if (isvector) {
             			Py_DECREF(item);
@@ -894,14 +892,14 @@ void SetColumnDoubleSparseMatrix(structlpsolvecaller *lpsolvecaller, int element
 void CreateString(structlpsolvecaller *lpsolvecaller, char **str, int m, int element)
 {
         if(m == 1)
-                setlhs(lpsolvecaller, element, PyBytes_FromString(*str));
+                setlhs(lpsolvecaller, element, PyUnicode_FromString(*str));
         else {
                 PyObject *PyObject1;
                 int i, len = m;
 
                 PyObject1 = MyPyArray_New(len);
                 for (i = 0; i < len; i++)
-            		MyPyArray_SET_ITEM(PyObject1, i, PyBytes_FromString(*(str++)));
+            		MyPyArray_SET_ITEM(PyObject1, i, PyUnicode_FromString(*(str++)));
                 setlhs(lpsolvecaller, element, PyObject1);
         }
 }
